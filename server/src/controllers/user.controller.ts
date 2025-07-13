@@ -2,11 +2,19 @@ import { Response, Request } from "express"
 import {client} from '../database/db'
 import bcrypt, { hash } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import '../types/express'
 import { Result } from "pg"
 
 const generateAccessToken=(id: number)=>{
     return jwt.sign({id: id}, process.env.JWT_SECRET||'mhasdnhgvasdmhgv')
 }
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none" as const, //Explains to ts that "none" is a type literal and not a string
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10), // ~10 years
+};
 
 const login=async(req: Request, res: Response)=>{
     const {email, password}=req.body
@@ -17,7 +25,7 @@ const login=async(req: Request, res: Response)=>{
             const isPwdMatching=await bcrypt.compare(password, savedPassword)
             if(isPwdMatching){
                 const token=generateAccessToken(result.rows[0]['id'])
-                res.status(200).json({success:true, data:token})
+                res.status(200).cookie("accessToken", token, cookieOptions).json({success:true, data:token})
             }
             else{
                 res.status(400).json({success:false, message:"Wrong Password"})
@@ -39,7 +47,7 @@ const signUp=async(req: Request, res: Response)=>{
     const hashed_password=await bcrypt.hash(password, salt)
     if(!hashed_password){
         res.status(500).json({success:false, message:"Error hashing password"})
-        process.exit(1)
+        return
     }
     else{
         try {
@@ -54,7 +62,7 @@ const signUp=async(req: Request, res: Response)=>{
 }
 
 const getUser=async(req: Request, res: Response)=>{
-
+   res.status(200).json({success: true, data: req.user, message:"User got"})
 }
 
 const deleteUser=async(req: Request, res: Response)=>{
@@ -69,4 +77,4 @@ const editUser=async(req: Request, res: Response)=>{
 
 }
 
-export {login, signUp}
+export {login, signUp, getUser, deleteUser, logout, editUser}
