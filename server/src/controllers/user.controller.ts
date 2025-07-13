@@ -7,15 +7,17 @@ const login=async(req: Request, res: Response)=>{
     try {
         const result= await client.query('select email, password from users where email=$1', [email])
         if(result){
-            result.rows[0]['password']==password ? res.status(200).json({success:true, data:result.rows[0]})
+            const savedPassword=result.rows[0]['password']
+            const isPwdMatching=await bcrypt.compare(password, savedPassword)
+            isPwdMatching ? res.status(200).json({success:true, data:result.rows[0]})
                 :res.status(400).json({success:false, message:"Wrong Password"})
         }
         else{
             res.status(401).json({success:false, message:"User doesnt exist"})
         }
-        
     } catch (error) {
-        
+        console.error('Login error', error)
+        res.status(500).json({success:false, message:"Error logging in "+error})
     }
 }
 const signUp=async(req: Request, res: Response)=>{
