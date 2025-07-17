@@ -42,6 +42,12 @@ const login=async(req: Request, res: Response)=>{
 
 const signUp=async(req: Request, res: Response)=>{
     const {name, email, password}=req.body
+    const isPresent=await client.query('select id from users where email=$1',[email])
+    if(isPresent.rows.length==0?false:true){
+        res.status(400).json({success:false, message:"User exists"})
+        return
+    }
+    console.log(isPresent)
     const salt=await bcrypt.genSalt(10)
     console.log(salt)
     const hashed_password=await bcrypt.hash(password, salt)
