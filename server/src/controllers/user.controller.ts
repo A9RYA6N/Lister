@@ -1,9 +1,9 @@
 import { Response, Request } from "express"
-import {client} from '../database/db'
 import bcrypt, { hash } from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import '../types/express'
 import { Result } from "pg"
+import prisma from "../../prismaClient"
 
 const generateAccessToken=(id: number)=>{
     return jwt.sign({id: id}, process.env.JWT_SECRET||'mhasdnhgvasdmhgv')
@@ -19,12 +19,14 @@ const cookieOptions = {
 const login=async(req: Request, res: Response)=>{
     const {email, password}=req.body
     try {
-        const result= await client.query('select id, email, password from users where email=$1', [email])
+        const result=await prisma.users.findMany({
+            where:{email}
+        })
         if(result){
-            const savedPassword=result.rows[0]['password']
+            const savedPassword=result[0]['password']
             const isPwdMatching=await bcrypt.compare(password, savedPassword)
             if(isPwdMatching){
-                const token=generateAccessToken(result.rows[0]['id'])
+                const token=generateAccessToken(result[0]['id'])
                 res.status(200).cookie("accessToken", token, cookieOptions).json({success:true, data:token})
             }
             else{
@@ -42,12 +44,13 @@ const login=async(req: Request, res: Response)=>{
 
 const signUp=async(req: Request, res: Response)=>{
     const {name, email, password}=req.body
-    const isPresent=await client.query('select id from users where email=$1',[email])
-    if(isPresent.rows.length==0?false:true){
+    const isPresent=await prisma.users.findMany({
+        where:{email}
+    })
+    if(isPresent.length==0?false:true){
         res.status(400).json({success:false, message:"User exists"})
         return
     }
-    console.log(isPresent)
     const salt=await bcrypt.genSalt(10)
     console.log(salt)
     const hashed_password=await bcrypt.hash(password, salt)
@@ -57,7 +60,13 @@ const signUp=async(req: Request, res: Response)=>{
     }
     else{
         try {
-            await client.query('Insert into users(email, password, name) values ($1, $2, $3)', [email, hashed_password, name])
+            const user = await prisma.users.create({
+                data:{
+                    email,
+                    password: hashed_password,
+                    name
+                }
+            })
             console.log("User signed up")
             res.status(200).json({success:true, message:"User successfully signed in"})
         } catch (error) {

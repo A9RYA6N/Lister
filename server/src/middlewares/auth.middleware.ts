@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { client } from "../database/db";
+import prisma from "../../prismaClient";
 import { Request, Response, NextFunction } from "express";
 import '../types/express'
 
@@ -11,12 +11,14 @@ const verifyJWT=async(req: Request, res: Response, next: NextFunction)=>{
             return
         }
         const decodedToken=jwt.verify(token, process.env.JWT_SECRET || 'mhasdnhgvasdmhgv') as any
-        const result= await client.query('select id, email, name from users where id=$1', [decodedToken.id])
+        const result=await prisma.users.findMany({
+            where:{id: decodedToken.id}
+        })
         if(!result){
             res.status(401).json({success: false, message:'Invalid token request'})
             return
         }
-        req.user=result.rows[0]
+        req.user=result[0]
         //I have to create user for express????
         next()
     } catch (error) {
