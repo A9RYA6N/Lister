@@ -5,7 +5,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 #Copy the package.json and package-lock.json files to the container
-COPY package*.json .
+COPY package*.json ./
 
 #Install dependencies
 RUN npm install
@@ -18,7 +18,7 @@ COPY . .
 RUN npm run build
 
 #Expose the port that the app runs on
-EXPOSE 5003
+EXPOSE 3000
 
 #Command to run your application
 CMD ["npm", "start"]

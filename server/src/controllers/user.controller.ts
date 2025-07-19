@@ -77,7 +77,7 @@ const signUp=async(req: Request, res: Response)=>{
 }
 
 const getUser=async(req: Request, res: Response)=>{
-   res.status(200).json({success: true, data: req.user, message:"User got"})
+    res.status(200).json({success: true, data: req.user, message:"User got"})
 }
 
 const deleteUser=async(req: Request, res: Response)=>{
@@ -92,4 +92,11 @@ const editUser=async(req: Request, res: Response)=>{
 
 }
 
-export {login, signUp, getUser, deleteUser, logout, editUser}
+const getTest=async(req: Request, res: Response)=>{
+    const result=await prisma.users.findMany({
+        where: {id:1}
+    })
+    res.status(200).json({success:true, data:result})
+}
+
+export {login, signUp, getUser, deleteUser, logout, editUser, getTest}
