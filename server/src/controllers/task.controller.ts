@@ -33,7 +33,7 @@ const deleteTask=async(req: Request, res: Response)=>{
             where:{id}
         })
         console.log(result)
-        res.status(200).json({success:true, message:"Task deleted"})
+        res.status(200).json({success:true, data:result, message:"Task deleted"})
     } catch (error) {
         console.error(error);
         res.status(500).json({success:false, message:"Error deleting task", error})

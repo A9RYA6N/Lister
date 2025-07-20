@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios'
 import { useState } from 'react'
+import { useNavigate } from 'react-router';
 const Login = () => {
+    const navigate=useNavigate()
     const [email, setEmail]=useState('');
     const [password, setPassword]=useState('');
     const [name, setName]=useState('');
@@ -26,6 +28,7 @@ const Login = () => {
             {
                 console.log(res.data.data)
             }
+            navigate('/')
         } catch (error) {
             const err=error as AxiosError
             const status=err.response?.status;
