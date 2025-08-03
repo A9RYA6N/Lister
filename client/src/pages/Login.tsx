@@ -66,6 +66,7 @@ const Login = () => {
             if(res.status==200)
             {
                 console.log("User signed up!")
+                navigate('/verify')
             }
         } catch (error) {
             const err=error as AxiosError;
@@ -81,6 +82,14 @@ const Login = () => {
         finally{
             setIsLoading(false)
         }
+    }
+
+    const handleRemoveCookie=async()=>{
+         const res=await axios({
+                method:"GET",
+                url:`${import.meta.env.VITE_USER_API}/logout`,
+            })
+            console.log(res)
     }
 
     return (
@@ -108,6 +117,7 @@ const Login = () => {
                     withCredentials:true
                 }).then((res)=>{console.log(res.data)}).catch((err)=>{console.error(err)})
             }}>Get user</button>
+            <button onClick={handleRemoveCookie}>Remove cookie</button>
         </div>
     )
 }

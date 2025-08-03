@@ -11,6 +11,7 @@ const verifyJWT=async(req: Request, res: Response, next: NextFunction)=>{
             return
         }
         const decodedToken=jwt.verify(token, process.env.JWT_SECRET || 'mhasdnhgvasdmhgv') as any
+        console.log(decodedToken)
         const result=await prisma.users.findMany({
             where:{id: decodedToken.id}
         })
