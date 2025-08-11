@@ -15,7 +15,6 @@ const addTask=async(req: Request, res: Response)=>{
                 task:task
             }
         })
-        console.log(result)
         res.status(200).json({success: true, data:result, message:"Task created"})
     } catch (error) {
         console.error(error);
@@ -32,7 +31,6 @@ const deleteTask=async(req: Request, res: Response)=>{
         const result=await prisma.list.delete({
             where:{id}
         })
-        console.log(result)
         res.status(200).json({success:true, data:result, message:"Task deleted"})
     } catch (error) {
         console.error(error);
@@ -49,7 +47,6 @@ const getTask=async(req: Request, res: Response)=>{
         const result=await prisma.list.findMany({
             where:{user_id:id}
         })
-        console.log(result)
         res.status(200).json({success:true, data:result, message:"Got tasks"})
     } catch (error) {
         console.error(error);

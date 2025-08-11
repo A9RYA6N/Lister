@@ -61,7 +61,8 @@ const Login = () => {
             const res=await axios({
                 method:"POST",
                 url:`${import.meta.env.VITE_USER_API}/signup`,
-                data:apiObj
+                data:apiObj,
+                withCredentials: true
             })
             if(res.status==200)
             {
@@ -88,6 +89,7 @@ const Login = () => {
          const res=await axios({
                 method:"GET",
                 url:`${import.meta.env.VITE_USER_API}/logout`,
+                withCredentials: true
             })
             console.log(res)
     }

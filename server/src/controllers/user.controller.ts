@@ -6,7 +6,7 @@ import prisma from "../../prismaClient"
 import client from "../../redisClient"
 import getOTP from "../services/otpService"
 
-const generateAccessToken=async (id: number)=>{
+const generateAccessToken=(id: number)=>{
     return jwt.sign({id: id}, process.env.JWT_SECRET||'mhasdnhgvasdmhgv')
 }
 
@@ -20,14 +20,14 @@ const cookieOptions = {
 const login=async(req: Request, res: Response)=>{
     const {email, password}=req.body
     try {
-        const result=await prisma.users.findMany({
+        const result=await prisma.users.findFirst({
             where:{email}
         })
         if(result){
-            const savedPassword=result[0]['password']
+            const savedPassword=result['password']
             const isPwdMatching=await bcrypt.compare(password, savedPassword)
             if(isPwdMatching){
-                const token=generateAccessToken(result[0]['id'])
+                const token=generateAccessToken(result['id'])
                 res.status(200).cookie("accessToken", token, cookieOptions).json({success:true, data:token})
             }
             else{
@@ -45,10 +45,10 @@ const login=async(req: Request, res: Response)=>{
 
 const signUp=async(req: Request, res: Response)=>{
     const {name, email, password}=req.body
-    const isPresent=await prisma.users.findMany({
+    const isPresent=await prisma.users.findFirst({
         where:{email}
     })
-    if(isPresent.length==0?false:true){
+    if(isPresent){
         res.status(400).json({success:false, message:"User exists"})
         return
     }
@@ -69,7 +69,7 @@ const signUp=async(req: Request, res: Response)=>{
                 }
             })
             await getOTP(email)
-            const token = await generateAccessToken(user.id)
+            const token=generateAccessToken(user.id)
             res.status(200).cookie("accessToken", token, cookieOptions).json({success:true, accessToken:token, message:"User successfully signed in"})
         } catch (error) {
             console.error('Sign in error', error)
@@ -110,11 +110,13 @@ const getTest=async(req: Request, res: Response)=>{
 }
 
 const checkOTP=async(req: Request, res: Response)=>{
-    const {id, email, userOtp}=req.body;
+    const {userOtp}=req.body;
+    const {id, email}=req.user!;
     const otp=await client.get(`otp:${email}`)
     if(otp!=null){
         if(otp==userOtp)
         {
+            console.log(id)
             await prisma.users.update({
                 data: { verified: true },
                 where: {id}
@@ -127,7 +129,7 @@ const checkOTP=async(req: Request, res: Response)=>{
         }
     }
     else{
-        res.status(400).send({success:false, message:"Otp expired"})
+        res.status(400).send({success:false, message:"Otp expired", payload:id})
     }
 }
 
